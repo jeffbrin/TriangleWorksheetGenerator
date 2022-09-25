@@ -27,24 +27,37 @@ form.addEventListener('submit', (e) => {
     let questionNumber = 1;
     if(sinProblems)
         for(let i = 0; i < numberOfProblemsPerFunction; i++){
-            generateSinProblem()
+            let params = {questionNumber: questionNumber};
+            if(randomChanceOfSuccess(33))
+                params.findHypotenuse = true;
+            else if(randomChanceOfSuccess(33))
+                params.findOpposite = true;
+            else
+                params.findTheta = true;
+            generateSinProblem(params)
             questionNumber++;
         }
     if(cosProblems)
         for(let i = 0; i < numberOfProblemsPerFunction; i++){
-            generateCosProblem()
+            let params = {questionNumber: questionNumber};
+            if(randomChanceOfSuccess(33))
+                params.findHypotenuse = true;
+            else if(randomChanceOfSuccess(33))
+                params.findAdjacent = true;
+            else
+                params.findTheta = true;
+            generateCosProblem(params)
             questionNumber++;
         }
     if(tanProblems)
         for(let i = 0; i < numberOfProblemsPerFunction; i++){
-            let params;
+            let params = {questionNumber: questionNumber};
             if(randomChanceOfSuccess(33))
-                params = {findOpposite: true}
+                params.findOpposite = true;
             else if(randomChanceOfSuccess(33))
-                params = {findAdjacent: true}
+                params.findAdjacent = true;
             else
-                params = {findTheta: true}
-            params.questionNumber = questionNumber;
+                params.findTheta = true;
             generateTanProblem(params)
             questionNumber++;
         }
@@ -71,7 +84,7 @@ function validateForm(){
  * Generates a problem which is solved by using tangent.
  * @param {object} params An object containing parameters for the problem.
  */
-function generateTanProblem(params = {findOpposite: true, questionNumber: 1}){
+function generateTanProblem(params){
 
     const problemDiv = document.createElement("div");
     problemDiv.className = "problemDiv";
@@ -101,12 +114,68 @@ function generateTanProblem(params = {findOpposite: true, questionNumber: 1}){
 
 }
 
-function generateCosProblem(){
+/**
+ * Generates a problem which is solved by using cosine.
+ * @param {object} params An object containing parameters for the problem.
+ */
+function generateCosProblem(params){
+    const problemDiv = document.createElement("div");
+    problemDiv.className = "problemDiv";
 
+    let problemDescription = `${params.questionNumber}. `;
+    if (params.findTheta){
+        var {canvas, triangle} = generateTriangleCanvas(false, false, true, true, true);
+        problemDescription += `A right angle triangle has an angle theta who's adjacent side measures ${triangle.adjacentLength}${MEASUREMENT} and a hypotenuse measuring ${triangle.hypotenuseLength}${MEASUREMENT}.` +
+                             `What is the the angle of theta?`;
+    }
+    else if (params.findHypotenuse){
+        var {canvas, triangle} = generateTriangleCanvas(true, false, true, false, false, false, false, true);
+        problemDescription += `A right angle triangle has an angle theta measuring ${triangle.theta}° and an adjacent side measuring ${triangle.adjacentLength}${MEASUREMENT}. What is the length of the hypotenuse?`
+    }
+    else if (params.findAdjacent){
+            var {canvas, triangle} = generateTriangleCanvas(true, false, false, true, false, false, true);
+        problemDescription += `A right angle triangle has an angle theta measuring ${triangle.theta}° and a hypotenuse measuring ${triangle.hypotenuseLength}${MEASUREMENT}. What is the length of the adjacent side?`;
+    }
+
+    const questionText = document.createElement("p");
+    questionText.innerText = problemDescription;
+
+    problemDiv.appendChild(questionText);
+    problemDiv.appendChild(canvas);
+
+    document.body.appendChild(problemDiv);
 }
 
-function generateSinProblem(){
+/**
+ * Generates a problem which is solved by using sine.
+ * @param {object} params An object containing parameters for the problem.
+ */
+function generateSinProblem(params){
+    const problemDiv = document.createElement("div");
+    problemDiv.className = "problemDiv";
 
+    let problemDescription = `${params.questionNumber}. `;
+    if (params.findTheta){
+        var {canvas, triangle} = generateTriangleCanvas(false, true, false, true, true);
+        problemDescription += `A right angle triangle has an angle theta who's opposite side measures ${triangle.oppositeLength}${MEASUREMENT} and a hypotenuse measuring ${triangle.hypotenuseLength}${MEASUREMENT}.` +
+                             `What is the the angle of theta?`;
+    }
+    else if (params.findHypotenuse){
+        var {canvas, triangle} = generateTriangleCanvas(true, true, false, false, false, false, false, true);
+        problemDescription += `A right angle triangle has an angle theta measuring ${triangle.theta}° and an opposite side measuring ${triangle.oppositeLength}${MEASUREMENT}. What is the length of the hypotenuse?`
+    }
+    else if (params.findOpposite){
+            var {canvas, triangle} = generateTriangleCanvas(true, false, false, true, false, true);
+        problemDescription += `A right angle triangle has an angle theta measuring ${triangle.theta}° and a hypotenuse measuring ${triangle.hypotenuseLength}${MEASUREMENT}. What is the length of the opposite side?`;
+    }
+
+    const questionText = document.createElement("p");
+    questionText.innerText = problemDescription;
+
+    problemDiv.appendChild(questionText);
+    problemDiv.appendChild(canvas);
+
+    document.body.appendChild(problemDiv);
 }
 
 /**
@@ -208,6 +277,12 @@ function drawTriangle(context, showThetaAngle = true, showOppositeLength = true,
             context.fillText(`${triangle.theta}°`, thetaWritingPosition.x, thetaWritingPosition.y);
         else if (findingTheta)
             context.fillText(`θ`, thetaWritingPosition.x, thetaWritingPosition.y);
+
+        const hypotenuseWritingPosition = new Vector2((vertex1Position.x + vertex2Position.x) / 2 + (cornerLeft ? 10 : -40), (vertex1Position.y + vertex2Position.y) / 2 + (cornerTop ? 20 : -10));
+        if (showHypotenuseLength)
+            context.fillText(`${triangle.hypotenuseLength}${MEASUREMENT}`, hypotenuseWritingPosition.x, hypotenuseWritingPosition.y);
+        else if (findingHypotenuse)
+            context.fillText(`x`, hypotenuseWritingPosition.x + (cornerLeft ? 0 : 10), hypotenuseWritingPosition.y);
     }
     else{
          // Find the value of theta
